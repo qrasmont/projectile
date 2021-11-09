@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+)
 
 func main() {
-	fmt.Printf("Projectile\n")
+	path := flag.String("p", "", "The project's path.")
+	flag.Parse()
+
+	action := flag.Args()
+
+	fmt.Printf("path: %s, action: %s\n", *path, action)
 }
