@@ -52,6 +52,23 @@ func hasConfigFile(file *string) bool {
 	return false
 }
 
+func executeActions(config *Config, actions *[]string) {
+
+	for _, a := range *actions {
+		matched := false
+
+		for _, b := range config.Actions {
+			if a == b.Name {
+				fmt.Printf("should run %s\n", b)
+				matched = true
+			}
+		}
+		if !matched {
+			log.Fatal(errors.New("No match for action in config."))
+		}
+	}
+}
+
 func main() {
 	path := flag.String("p", "", "The project's path.")
 
@@ -81,5 +98,6 @@ func main() {
 
 	var config Config
 	parseConfig(&config, &config_file)
-	fmt.Printf("%+v\n", config)
+
+	executeActions(&config, &actions)
 }
