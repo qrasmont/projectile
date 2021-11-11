@@ -58,7 +58,9 @@ func main() {
 	flag.Parse()
 	actions := flag.Args()
 
-	fmt.Printf("path: %s, action: %s\n", *path, actions)
+	if len(actions) == 0 {
+		log.Fatal(errors.New("Need at list one action."))
+	}
 
 	workdir := ""
 	if *path != "" {
