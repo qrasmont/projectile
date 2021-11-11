@@ -14,16 +14,27 @@ projectile [-p path] action
 Example of a project config:
 ```json
 {
-  "setup": [
-    "git submodule init"
-    "git submodule update",
-  ],
-  "clean": [
-    "make clean"
-  ],
-  "build": [
-    "make -j6"
-  ]
+    "actions":[
+        {
+            "name": "setup",
+            "steps": [
+                "git submodule update",
+                "git submodule init"
+            ]
+        },
+        {
+            "name": "clean",
+            "steps": [
+                "make clean"
+            ]
+        },
+        {
+            "name": "build",
+            "steps": [
+                "make -j6"
+            ]
+        }
+    ]
 }
 ```
 The file lists a serie of actions that can be performed.

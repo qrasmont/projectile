@@ -1,17 +1,46 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 )
 
-func hasConfigFile(workdir *string) bool {
+const CONFIG_FILE = ".projectile.json"
 
-	matches, err := filepath.Glob(*workdir + "/.projectile.json")
+type Action struct {
+	Name  string
+	Steps []string
+}
+
+type Config struct {
+	Actions []Action
+}
+
+func parseConfig(config *Config, path *string) {
+	jsonFile, err := os.Open(*path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	err = json.Unmarshal(byteValue, config)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func hasConfigFile(file *string) bool {
+
+	matches, err := filepath.Glob(*file)
 
 	if err != nil {
 		fmt.Println(err)
@@ -43,9 +72,12 @@ func main() {
 		workdir = cwd
 	}
 
-	if !hasConfigFile(&workdir) {
+	config_file := workdir + "/" + CONFIG_FILE
+	if !hasConfigFile(&config_file) {
 		log.Fatal(errors.New("No .projectile.json found!"))
 	}
 
-	fmt.Printf("workdir set to: %s\n", workdir)
+	var config Config
+	parseConfig(&config, &config_file)
+	fmt.Printf("%+v\n", config)
 }
