@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 const CONFIG_FILE = ".projectile.json"
@@ -52,15 +54,24 @@ func hasConfigFile(file *string) bool {
 	return false
 }
 
-func executeActions(config *Config, actions *[]string) {
+func executeActions(config *Config, actions *[]string, workdir *string) {
 
 	for _, a := range *actions {
 		matched := false
 
 		for _, b := range config.Actions {
 			if a == b.Name {
-				fmt.Printf("should run %s\n", b)
 				matched = true
+				for _, cmd := range b.Steps {
+					args := strings.Fields(cmd)
+					runner := exec.Command(args[0], args[1:]...)
+					runner.Dir = *workdir
+					err := runner.Run()
+					if err != nil {
+						panic(err)
+					}
+					fmt.Printf("%s", cmd)
+				}
 			}
 		}
 		if !matched {
@@ -99,5 +110,5 @@ func main() {
 	var config Config
 	parseConfig(&config, &config_file)
 
-	executeActions(&config, &actions)
+	executeActions(&config, &actions, &workdir)
 }
