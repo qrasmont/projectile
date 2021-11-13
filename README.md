@@ -4,10 +4,10 @@ Project builder
 
 ## Usage
 ```
-projectile [-p path] action
+projectile [-p path] [-a=true] action
 ```
 - Without -p, the path is set to the cwd.
-- Reserved action "all" will run all action squencially
+- -a: perform all the config actions sequentially
 
 ## Config file
 
