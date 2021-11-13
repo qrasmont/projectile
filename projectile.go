@@ -54,28 +54,37 @@ func hasConfigFile(file *string) bool {
 	return false
 }
 
-func executeActions(config *Config, actions *[]string, workdir *string) {
+func extractCommands(config *Config, actions *[]string) []string {
+	var commands []string
 
-	for _, a := range *actions {
+	for _, action := range *actions {
 		matched := false
 
-		for _, b := range config.Actions {
-			if a == b.Name {
+		for _, config_action := range config.Actions {
+			if action == config_action.Name {
 				matched = true
-				for _, cmd := range b.Steps {
-					args := strings.Fields(cmd)
-					runner := exec.Command(args[0], args[1:]...)
-					runner.Dir = *workdir
-					err := runner.Run()
-					if err != nil {
-						panic(err)
-					}
-					fmt.Printf("%s", cmd)
+				for _, cmd := range config_action.Steps {
+					commands = append(commands, cmd)
 				}
 			}
 		}
+
 		if !matched {
 			log.Fatal(errors.New("No match for action in config."))
+		}
+	}
+
+	return commands
+}
+
+func commandRunner(commands *[]string, workdir *string) {
+	for _, cmd := range *commands {
+		args := strings.Fields(cmd)
+		runner := exec.Command(args[0], args[1:]...)
+		runner.Dir = *workdir
+		err := runner.Run()
+		if err != nil {
+			panic(err)
 		}
 	}
 }
@@ -110,5 +119,6 @@ func main() {
 	var config Config
 	parseConfig(&config, &config_file)
 
-	executeActions(&config, &actions, &workdir)
+	commands := extractCommands(&config, &actions)
+	commandRunner(&commands, &workdir)
 }
