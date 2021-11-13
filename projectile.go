@@ -54,7 +54,7 @@ func hasConfigFile(file *string) bool {
 	return false
 }
 
-func extractCommands(config *Config, actions *[]string) []string {
+func extractCommandsFromActions(config *Config, actions *[]string) []string {
 	var commands []string
 
 	for _, action := range *actions {
@@ -77,13 +77,25 @@ func extractCommands(config *Config, actions *[]string) []string {
 	return commands
 }
 
+func extractAllCommands(config *Config) []string {
+	var commands []string
+
+	for _, config_action := range config.Actions {
+		for _, cmd := range config_action.Steps {
+			commands = append(commands, cmd)
+		}
+	}
+
+	return commands
+}
+
 func commandRunner(commands *[]string, workdir *string) {
 	for _, cmd := range *commands {
 		args := strings.Fields(cmd)
 		runner := exec.Command(args[0], args[1:]...)
 		runner.Dir = *workdir
-        runner.Stdout = os.Stdout
-        runner.Stderr = os.Stdout
+		runner.Stdout = os.Stdout
+		runner.Stderr = os.Stdout
 		err := runner.Run()
 		if err != nil {
 			panic(err)
@@ -93,12 +105,15 @@ func commandRunner(commands *[]string, workdir *string) {
 
 func main() {
 	path := flag.String("p", "", "The project's path.")
+	do_all := flag.Bool("a", false, "Perform all listed actions squencially")
 
 	flag.Parse()
 	actions := flag.Args()
 
-	if len(actions) == 0 {
+	if len(actions) == 0 && !*do_all {
 		log.Fatal(errors.New("Need at list one action."))
+	} else if len(actions) > 0 && *do_all {
+		println("-a flag used, ignoring provided actions")
 	}
 
 	workdir := ""
@@ -121,6 +136,12 @@ func main() {
 	var config Config
 	parseConfig(&config, &config_file)
 
-	commands := extractCommands(&config, &actions)
+	var commands []string
+	if !*do_all {
+		commands = extractCommandsFromActions(&config, &actions)
+	} else {
+		commands = extractAllCommands(&config)
+	}
+
 	commandRunner(&commands, &workdir)
 }
