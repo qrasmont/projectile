@@ -82,6 +82,8 @@ func commandRunner(commands *[]string, workdir *string) {
 		args := strings.Fields(cmd)
 		runner := exec.Command(args[0], args[1:]...)
 		runner.Dir = *workdir
+        runner.Stdout = os.Stdout
+        runner.Stderr = os.Stdout
 		err := runner.Run()
 		if err != nil {
 			panic(err)
