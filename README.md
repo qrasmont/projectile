@@ -4,10 +4,11 @@ Project builder
 
 ## Usage
 ```
-projectile [-p path] [-a=true] action
+projectile [-a=true] [-g=true] [-p path] action
 ```
 - Without -p, the path is set to the cwd.
 - -a: perform all the config actions sequentially
+- -g: list all config actions
 
 ## Config file
 

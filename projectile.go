@@ -89,6 +89,12 @@ func extractAllCommands(config *Config) []string {
 	return commands
 }
 
+func printAllActionsFromConfig(config *Config) {
+	for _, config_action := range config.Actions {
+		fmt.Println(config_action.Name)
+	}
+}
+
 func commandRunner(commands *[]string, workdir *string) {
 	for _, cmd := range *commands {
 		args := strings.Fields(cmd)
@@ -106,14 +112,17 @@ func commandRunner(commands *[]string, workdir *string) {
 func main() {
 	path := flag.String("p", "", "The project's path.")
 	do_all := flag.Bool("a", false, "Perform all listed actions squencially")
+	get := flag.Bool("g", false, "List all actions from the config")
 
 	flag.Parse()
 	actions := flag.Args()
 
-	if len(actions) == 0 && !*do_all {
+	if len(actions) == 0 && !*do_all && !*get {
 		log.Fatal(errors.New("Need at list one action."))
 	} else if len(actions) > 0 && *do_all {
 		println("-a flag used, ignoring provided actions")
+	} else if len(actions) > 0 && *get {
+		log.Fatal(errors.New("no args should be provided with -g"))
 	}
 
 	workdir := ""
@@ -135,6 +144,11 @@ func main() {
 
 	var config Config
 	parseConfig(&config, &config_file)
+
+	if *get {
+		printAllActionsFromConfig(&config)
+		return
+	}
 
 	var commands []string
 	if !*do_all {
