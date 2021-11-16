@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/quadstew/projectile/cmd"
 )
 
 const CONFIG_FILE = ".projectile.json"
@@ -109,35 +110,19 @@ func commandRunner(commands *[]string, workdir *string) {
 	}
 }
 
+func Bye(err error) {
+
+	fmt.Println(err)
+	os.Exit(1)
+}
+
 func main() {
-	path := flag.String("p", "", "The project's path.")
-	do_all := flag.Bool("a", false, "Perform all listed actions squencially")
-	get := flag.Bool("g", false, "List all actions from the config")
-
-	flag.Parse()
-	actions := flag.Args()
-
-	if len(actions) == 0 && !*do_all && !*get {
-		log.Fatal(errors.New("Need at list one action."))
-	} else if len(actions) > 0 && *do_all {
-		println("-a flag used, ignoring provided actions")
-	} else if len(actions) > 0 && *get {
-		log.Fatal(errors.New("no args should be provided with -g"))
+	cmdConfig, err := cmd.New()
+	if err != nil {
+		Bye(err)
 	}
 
-	workdir := ""
-	if *path != "" {
-		workdir = *path
-	} else {
-		// Get the cwd
-		cwd, err := os.Getwd()
-		if err != nil {
-			log.Fatal(errors.New("Could not get cwd."))
-		}
-		workdir = cwd
-	}
-
-	config_file := workdir + "/" + CONFIG_FILE
+	config_file := cmdConfig.Path + "/" + CONFIG_FILE
 	if !hasConfigFile(&config_file) {
 		log.Fatal(errors.New("No .projectile.json found!"))
 	}
@@ -145,17 +130,17 @@ func main() {
 	var config Config
 	parseConfig(&config, &config_file)
 
-	if *get {
+	if cmdConfig.Command == cmd.Get {
 		printAllActionsFromConfig(&config)
 		return
 	}
 
 	var commands []string
-	if !*do_all {
-		commands = extractCommandsFromActions(&config, &actions)
+	if cmdConfig.Command != cmd.All {
+		commands = extractCommandsFromActions(&config, &cmdConfig.Actions)
 	} else {
 		commands = extractAllCommands(&config)
 	}
 
-	commandRunner(&commands, &workdir)
+	commandRunner(&commands, &cmdConfig.Path)
 }
