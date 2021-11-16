@@ -4,11 +4,17 @@ Project builder
 
 ## Usage
 ```
-projectile [-a=true] [-g=true] [-p path] action
+projectile [OPTIONS] <COMMAND> [<ARGS>]
+
+COMMAND:
+  get           List all config actions.
+  do <actions>  Execute the actions listed.
+  do all        Execute all the actions in the config sequentially
+
+OPTIONS:
+  -p, --path  The project path, the current working directory by default.
+  -h, --help  Show this help message
 ```
-- Without -p, the path is set to the cwd.
-- -a: perform all the config actions sequentially
-- -g: list all config actions
 
 ## Config file
 
