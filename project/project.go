@@ -13,7 +13,7 @@ import (
 	"github.com/quadstew/projectile/cmd"
 )
 
-const CONFIG_FILE = ".projectile.json"
+const DEFAULT_HOME_CONFIG = ".config/projectile.json"
 
 type Action struct {
 	Name  string
@@ -119,7 +119,12 @@ func commandRunner(commands *[]string, workdir string) error {
 func Init(cmdConfig *cmd.CmdConfig) error {
 	CMD_CONFIG = cmdConfig
 
-	config_file := CMD_CONFIG.Path + "/" + CONFIG_FILE
+	home_dir, _ := os.UserHomeDir()
+	config_file := filepath.Join(home_dir, DEFAULT_HOME_CONFIG)
+	envPath := os.Getenv("PROJECTILE_CONFIG")
+	if envPath != "" {
+		config_file = envPath
+	}
 
 	hasConfig, err := hasConfigFile(config_file)
 	if err != nil {
@@ -127,7 +132,7 @@ func Init(cmdConfig *cmd.CmdConfig) error {
 	}
 
 	if !hasConfig {
-		return errors.New("No config file found in: " + CMD_CONFIG.Path)
+		return errors.New("No config file at: " + config_file)
 	}
 
 	err = parseConfig(CONFIG, config_file)
