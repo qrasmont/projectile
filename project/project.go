@@ -32,6 +32,7 @@ type Config struct {
 var CONFIG *Config = &Config{}
 var CMD_CONFIG *cmd.CmdConfig
 var PROJECT Project = Project{}
+var CONFIG_FILE string = ""
 
 func hasConfigFile(file string) (bool, error) {
 
@@ -119,26 +120,38 @@ func commandRunner(commands *[]string, workdir string) error {
 	return nil
 }
 
+func openEditor(editor string, file string) error {
+	runner := exec.Command(editor, file)
+	runner.Stdin = os.Stdin
+	runner.Stdout = os.Stdout
+	runner.Stderr = os.Stdout
+	err := runner.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func Init(cmdConfig *cmd.CmdConfig) error {
 	CMD_CONFIG = cmdConfig
 
 	home_dir, _ := os.UserHomeDir()
-	config_file := filepath.Join(home_dir, DEFAULT_HOME_CONFIG)
+	CONFIG_FILE = filepath.Join(home_dir, DEFAULT_HOME_CONFIG)
 	envPath := os.Getenv("PROJECTILE_CONFIG")
 	if envPath != "" {
-		config_file = envPath
+		CONFIG_FILE = envPath
 	}
 
-	hasConfig, err := hasConfigFile(config_file)
+	hasConfig, err := hasConfigFile(CONFIG_FILE)
 	if err != nil {
 		return err
 	}
 
 	if !hasConfig {
-		return errors.New("No config file at: " + config_file)
+		return errors.New("No config file at: " + CONFIG_FILE)
 	}
 
-	err = parseConfig(CONFIG, config_file)
+	err = parseConfig(CONFIG, CONFIG_FILE)
 	if err != nil {
 		return err
 	}
@@ -153,6 +166,12 @@ func Run() error {
 	var err error
 
 	switch CMD_CONFIG.Command {
+	case cmd.Edit:
+		editor := os.Getenv("EDITOR")
+		if editor == "" {
+			return errors.New("Cannot open an editor. EDITOR not set.")
+		}
+		openEditor(editor, CONFIG_FILE)
 	case cmd.Get:
 		printAllActionsFromConfig(&PROJECT)
 	case cmd.Do:
