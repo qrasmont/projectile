@@ -20,12 +20,18 @@ type Action struct {
 	Steps []string
 }
 
-type Config struct {
+type Project struct {
+	Path    string
 	Actions []Action
+}
+
+type Config struct {
+	Projects []Project
 }
 
 var CONFIG *Config = &Config{}
 var CMD_CONFIG *cmd.CmdConfig
+var PROJECT Project = Project{}
 
 func hasConfigFile(file string) (bool, error) {
 
@@ -59,13 +65,13 @@ func parseConfig(config *Config, path string) error {
 	return nil
 }
 
-func extractCommandsFromActions(config *Config, actions []string) ([]string, error) {
+func extractCommandsFromActions(project *Project, actions []string) ([]string, error) {
 	var commands []string
 
 	for _, action := range actions {
 		matched := false
 
-		for _, config_action := range config.Actions {
+		for _, config_action := range project.Actions {
 			if action == config_action.Name {
 				matched = true
 				for _, cmd := range config_action.Steps {
@@ -94,9 +100,18 @@ func extractAllCommands(config *Config) []string {
 	return commands
 }
 
-func printAllActionsFromConfig(config *Config) {
-	for _, config_action := range config.Actions {
-		fmt.Println(config_action.Name)
+func printAllActionsFromConfig(project *Project) {
+	for _, project_action := range project.Actions {
+		fmt.Println(project_action.Name)
+	}
+}
+
+func setProject(config *Config, workdir string) {
+	for _, project := range config.Projects {
+		if project.Path == workdir {
+			PROJECT = project
+			return
+		}
 	}
 }
 
@@ -140,6 +155,8 @@ func Init(cmdConfig *cmd.CmdConfig) error {
 		return err
 	}
 
+	setProject(CONFIG, CMD_CONFIG.Path)
+
 	return nil
 }
 
@@ -149,7 +166,7 @@ func Run() error {
 
 	switch CMD_CONFIG.Command {
 	case cmd.Get:
-		printAllActionsFromConfig(CONFIG)
+		printAllActionsFromConfig(&PROJECT)
 	case cmd.All:
 		commands = extractAllCommands(CONFIG)
 		err = commandRunner(&commands, CMD_CONFIG.Path)
@@ -157,7 +174,7 @@ func Run() error {
 			return err
 		}
 	case cmd.Do:
-		commands, err = extractCommandsFromActions(CONFIG, CMD_CONFIG.Actions)
+		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Actions)
 		err = commandRunner(&commands, CMD_CONFIG.Path)
 		if err != nil {
 			return err
