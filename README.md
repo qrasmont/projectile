@@ -1,6 +1,6 @@
 # projectile
 
-Project builder
+Run your projects commands by calling simple action keyword.
 
 ## Usage
 ```
@@ -9,7 +9,6 @@ projectile [OPTIONS] <COMMAND> [<ARGS>]
 COMMAND:
   get           List all config actions.
   do <actions>  Execute the actions listed.
-  do all        Execute all the actions in the config sequentially
 
 OPTIONS:
   -p, --path  The project path, the current working directory by default.
@@ -17,32 +16,60 @@ OPTIONS:
 ```
 
 ## Config file
+The config is kept in a json file.
+The file's default location is `$HOME/.config/projectile.json`.
+This default location can be modified by setting the `PROJECTILE_CONFIG` environement variable.
 
-Example of a project config:
+Example of a projectile config:
 ```json
 {
-    "actions":[
+    "projects": [
         {
-            "name": "setup",
-            "steps": [
-                "git submodule update",
-                "git submodule init"
+            "path": "/path/to/your/project",
+            "actions": [
+                {
+                    "name": "setup",
+                    "steps": [
+                        "command 1",
+                        "command 2"
+                    ]
+                },
+                {
+                    "name": "clean",
+                    "steps": [
+                        "command 1"
+                    ]
+                },
+                {
+                    "name": "build",
+                    "steps": [
+                        "command 1",
+                        "command 2",
+                        "command 3"
+                    ]
+                }
             ]
         },
         {
-            "name": "clean",
-            "steps": [
-                "make clean"
+            "path": "/path/to/another/project",
+            "actions": [
+                {
+                    "name": "test",
+                    "steps": [
+                        "command 1",
+                        "command 2"
+                    ]
+                },
+                {
+                    "name": "build",
+                    "steps": [
+                        "command 1"
+                    ]
+                }
             ]
         },
-        {
-            "name": "build",
-            "steps": [
-                "make -j6"
-            ]
-        }
     ]
 }
 ```
-The file lists a serie of actions that can be performed.
+The file lists, for each project, a serie of actions that can be performed.
 Each action consist of an array of shell commands to execute.

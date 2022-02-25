@@ -13,19 +13,25 @@ import (
 	"github.com/quadstew/projectile/cmd"
 )
 
-const CONFIG_FILE = ".projectile.json"
+const DEFAULT_HOME_CONFIG = ".config/projectile.json"
 
 type Action struct {
 	Name  string
 	Steps []string
 }
 
-type Config struct {
+type Project struct {
+	Path    string
 	Actions []Action
+}
+
+type Config struct {
+	Projects []Project
 }
 
 var CONFIG *Config = &Config{}
 var CMD_CONFIG *cmd.CmdConfig
+var PROJECT Project = Project{}
 
 func hasConfigFile(file string) (bool, error) {
 
@@ -59,13 +65,13 @@ func parseConfig(config *Config, path string) error {
 	return nil
 }
 
-func extractCommandsFromActions(config *Config, actions []string) ([]string, error) {
+func extractCommandsFromActions(project *Project, actions []string) ([]string, error) {
 	var commands []string
 
 	for _, action := range actions {
 		matched := false
 
-		for _, config_action := range config.Actions {
+		for _, config_action := range project.Actions {
 			if action == config_action.Name {
 				matched = true
 				for _, cmd := range config_action.Steps {
@@ -82,21 +88,18 @@ func extractCommandsFromActions(config *Config, actions []string) ([]string, err
 	return commands, nil
 }
 
-func extractAllCommands(config *Config) []string {
-	var commands []string
-
-	for _, config_action := range config.Actions {
-		for _, cmd := range config_action.Steps {
-			commands = append(commands, cmd)
-		}
+func printAllActionsFromConfig(project *Project) {
+	for _, project_action := range project.Actions {
+		fmt.Println(project_action.Name)
 	}
-
-	return commands
 }
 
-func printAllActionsFromConfig(config *Config) {
-	for _, config_action := range config.Actions {
-		fmt.Println(config_action.Name)
+func setProject(config *Config, workdir string) {
+	for _, project := range config.Projects {
+		if project.Path == workdir {
+			PROJECT = project
+			return
+		}
 	}
 }
 
@@ -119,7 +122,12 @@ func commandRunner(commands *[]string, workdir string) error {
 func Init(cmdConfig *cmd.CmdConfig) error {
 	CMD_CONFIG = cmdConfig
 
-	config_file := CMD_CONFIG.Path + "/" + CONFIG_FILE
+	home_dir, _ := os.UserHomeDir()
+	config_file := filepath.Join(home_dir, DEFAULT_HOME_CONFIG)
+	envPath := os.Getenv("PROJECTILE_CONFIG")
+	if envPath != "" {
+		config_file = envPath
+	}
 
 	hasConfig, err := hasConfigFile(config_file)
 	if err != nil {
@@ -127,13 +135,15 @@ func Init(cmdConfig *cmd.CmdConfig) error {
 	}
 
 	if !hasConfig {
-		return errors.New("No config file found in: " + CMD_CONFIG.Path)
+		return errors.New("No config file at: " + config_file)
 	}
 
 	err = parseConfig(CONFIG, config_file)
 	if err != nil {
 		return err
 	}
+
+	setProject(CONFIG, CMD_CONFIG.Path)
 
 	return nil
 }
@@ -144,15 +154,9 @@ func Run() error {
 
 	switch CMD_CONFIG.Command {
 	case cmd.Get:
-		printAllActionsFromConfig(CONFIG)
-	case cmd.All:
-		commands = extractAllCommands(CONFIG)
-		err = commandRunner(&commands, CMD_CONFIG.Path)
-		if err != nil {
-			return err
-		}
+		printAllActionsFromConfig(&PROJECT)
 	case cmd.Do:
-		commands, err = extractCommandsFromActions(CONFIG, CMD_CONFIG.Actions)
+		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Actions)
 		err = commandRunner(&commands, CMD_CONFIG.Path)
 		if err != nil {
 			return err
