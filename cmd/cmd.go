@@ -12,7 +12,6 @@ import (
 
 const (
 	Do  string = "do"
-	All        = "all"
 	Get        = "get"
 )
 
@@ -54,10 +53,6 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 	case Do:
 		if len(args) == 1 {
 			return errors.New("'do' needs at least 1 argument")
-		}
-		if args[1] == All {
-			cmdConfig.Command = All
-			return nil
 		}
 		cmdConfig.Command = Do
 		cmdConfig.Actions = args[1:]

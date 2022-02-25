@@ -88,18 +88,6 @@ func extractCommandsFromActions(project *Project, actions []string) ([]string, e
 	return commands, nil
 }
 
-func extractAllCommands(config *Config) []string {
-	var commands []string
-
-	for _, config_action := range config.Actions {
-		for _, cmd := range config_action.Steps {
-			commands = append(commands, cmd)
-		}
-	}
-
-	return commands
-}
-
 func printAllActionsFromConfig(project *Project) {
 	for _, project_action := range project.Actions {
 		fmt.Println(project_action.Name)
@@ -167,12 +155,6 @@ func Run() error {
 	switch CMD_CONFIG.Command {
 	case cmd.Get:
 		printAllActionsFromConfig(&PROJECT)
-	case cmd.All:
-		commands = extractAllCommands(CONFIG)
-		err = commandRunner(&commands, CMD_CONFIG.Path)
-		if err != nil {
-			return err
-		}
 	case cmd.Do:
 		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Actions)
 		err = commandRunner(&commands, CMD_CONFIG.Path)
