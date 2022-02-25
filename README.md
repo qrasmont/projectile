@@ -19,7 +19,7 @@ OPTIONS:
 ## Config file
 The config is kept in a json file.
 The file's default location is `$HOME/.config/projectile.json`.
-This default location can be modified by setting the `PROJECTILE_CONFIG` environement variable.
+This default location can be modified by setting the `PROJECTILE_CONFIG` environment variable.
 
 Example of a projectile config:
 ```json
