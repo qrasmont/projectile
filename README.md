@@ -9,6 +9,7 @@ projectile [OPTIONS] <COMMAND> [<ARGS>]
 COMMAND:
   get           List all config actions.
   do <actions>  Execute the actions listed.
+  edit          Open the config with $EDITOR.
 
 OPTIONS:
   -p, --path  The project path, the current working directory by default.
