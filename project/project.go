@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/quadstew/projectile/cmd"
@@ -59,6 +60,20 @@ func parseConfig(config *Config, path string) error {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	err = json.Unmarshal(byteValue, &config)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func storeConfig(config *Config, path string) error {
+	str_file, err := json.MarshalIndent(config, "", "   ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(path, str_file, 0644)
 	if err != nil {
 		return err
 	}
@@ -132,6 +147,54 @@ func openEditor(editor string, file string) error {
 	return nil
 }
 
+func addToConfig(config *Config, workdir string, actions []string) error {
+	// If PROJECT is empty it's not in our config
+	if reflect.DeepEqual(PROJECT, Project{}) {
+		action := Action{Name: actions[0], Steps: actions[1:]}
+		project := Project{Path: workdir, Actions: []Action{action}}
+
+		config.Projects = append(config.Projects, project)
+
+		err := storeConfig(config, CONFIG_FILE)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	found_action := false
+	for i, project := range config.Projects {
+		// Search for project
+		if project.Path == workdir {
+			// Search for matching action name in project
+			for j, action := range project.Actions {
+				if action.Name == actions[0] {
+					found_action = true
+					project.Actions[j].Steps = append(action.Steps, actions[1:]...)
+					break
+				}
+			}
+
+			if found_action {
+				break
+			}
+
+			// Action did not exist, add it to project
+			action := Action{Name: actions[0], Steps: actions[1:]}
+			config.Projects[i].Actions = append(project.Actions, action)
+			break
+		}
+	}
+
+	// Store our changes
+	err := storeConfig(config, CONFIG_FILE)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func Init(cmdConfig *cmd.CmdConfig) error {
 	CMD_CONFIG = cmdConfig
 
@@ -180,6 +243,8 @@ func Run() error {
 		if err != nil {
 			return err
 		}
+	case cmd.Add:
+		addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
 	}
 
 	return nil

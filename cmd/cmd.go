@@ -14,6 +14,7 @@ const (
 	Do   string = "do"
 	Get         = "get"
 	Edit        = "edit"
+	Add         = "add"
 )
 
 type CmdConfig struct {
@@ -63,6 +64,10 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 			return errors.New("'edit' doesn't need aditional arguments")
 		}
 		cmdConfig.Command = Edit
+		return nil
+	case Add:
+		cmdConfig.Command = Add
+		cmdConfig.Actions = args[1:]
 		return nil
 	default:
 		return errors.New("Unknown command: " + args[0])
