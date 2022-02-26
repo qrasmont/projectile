@@ -81,10 +81,10 @@ func storeConfig(config *Config, path string) error {
 	return nil
 }
 
-func extractCommandsFromActions(project *Project, actions []string) ([]string, error) {
+func extractCommandsFromActions(project *Project, args []string) ([]string, error) {
 	var commands []string
 
-	for _, action := range actions {
+	for _, action := range args {
 		matched := false
 
 		for _, config_action := range project.Actions {
@@ -147,10 +147,10 @@ func openEditor(editor string, file string) error {
 	return nil
 }
 
-func addToConfig(config *Config, workdir string, actions []string) error {
+func addToConfig(config *Config, workdir string, args []string) error {
 	// If PROJECT is empty it's not in our config
 	if reflect.DeepEqual(PROJECT, Project{}) {
-		action := Action{Name: actions[0], Steps: actions[1:]}
+		action := Action{Name: args[0], Steps: args[1:]}
 		project := Project{Path: workdir, Actions: []Action{action}}
 
 		config.Projects = append(config.Projects, project)
@@ -168,13 +168,13 @@ func addToConfig(config *Config, workdir string, actions []string) error {
 		if project.Path == workdir {
 			// Search for matching action name in project
 			for _, action := range project.Actions {
-				if action.Name == actions[0] {
+				if action.Name == args[0] {
 					return errors.New("This action already exists, maybe you want to use 'append'")
 				}
 			}
 
 			// Action did not exist, add it to project
-			action := Action{Name: actions[0], Steps: actions[1:]}
+			action := Action{Name: args[0], Steps: args[1:]}
 			config.Projects[i].Actions = append(project.Actions, action)
 			break
 		}
@@ -188,7 +188,7 @@ func addToConfig(config *Config, workdir string, actions []string) error {
 	return nil
 }
 
-func appendToConfig(config *Config, workdir string, actions []string) error {
+func appendToConfig(config *Config, workdir string, args []string) error {
 	if reflect.DeepEqual(PROJECT, Project{}) {
 		return errors.New("Cannot append action, no exititing project.")
 	}
@@ -196,8 +196,8 @@ func appendToConfig(config *Config, workdir string, actions []string) error {
 	for _, project := range config.Projects {
 		if project.Path == workdir {
 			for i, action := range project.Actions {
-				if action.Name == actions[0] {
-					project.Actions[i].Steps = append(action.Steps, actions[1:]...)
+				if action.Name == args[0] {
+					project.Actions[i].Steps = append(action.Steps, args[1:]...)
 					err := storeConfig(config, CONFIG_FILE)
 					if err != nil {
 						return err
@@ -255,18 +255,18 @@ func Run() error {
 	case cmd.Get:
 		printAllActionsFromConfig(&PROJECT)
 	case cmd.Do:
-		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Actions)
+		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Args)
 		err = commandRunner(&commands, CMD_CONFIG.Path)
 		if err != nil {
 			return err
 		}
 	case cmd.Add:
-		err = addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
+		err = addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
 		if err != nil {
 			return err
 		}
 	case cmd.Append:
-		err = appendToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
+		err = appendToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
 		if err != nil {
 			return err
 		}

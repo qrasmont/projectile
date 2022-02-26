@@ -21,7 +21,7 @@ const (
 type CmdConfig struct {
 	Path    string
 	Command string
-	Actions []string
+	Args []string
 }
 
 type Options struct {
@@ -58,7 +58,7 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 			return errors.New("'do' needs at least 1 argument")
 		}
 		cmdConfig.Command = Do
-		cmdConfig.Actions = args[1:]
+		cmdConfig.Args = args[1:]
 		return nil
 	case Edit:
 		if len(args) > 1 {
@@ -68,11 +68,11 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 		return nil
 	case Add:
 		cmdConfig.Command = Add
-		cmdConfig.Actions = args[1:]
+		cmdConfig.Args = args[1:]
 		return nil
 	case Append:
 		cmdConfig.Command = Append
-		cmdConfig.Actions = args[1:]
+		cmdConfig.Args = args[1:]
 		return nil
 	default:
 		return errors.New("Unknown command: " + args[0])
