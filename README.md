@@ -12,6 +12,7 @@ COMMAND:
   edit          Open the config with $EDITOR.
   add           Add a new action to the project.
   append        Append steps to an existing action.
+  rm [actions]  Remove the actions listed.
 
 OPTIONS:
   -p, --path  The project path, the current working directory by default.
