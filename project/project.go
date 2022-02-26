@@ -212,6 +212,42 @@ func appendToConfig(config *Config, workdir string, args []string) error {
 	return nil
 }
 
+func contains(where []string, what string) bool {
+	for _, item := range where {
+		if item == what {
+			return true
+		}
+	}
+	return false
+}
+
+func removeActionsFromConfig(config *Config, workdir string, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Need at least one action to remove.")
+	}
+
+	// TODO optimize this, linked list unmarshalling ?
+	for i, project := range config.Projects {
+		if project.Path == workdir {
+			updated_actions := make([]Action, 0, len(project.Actions)-len(args))
+			for _, action := range project.Actions {
+				if !contains(args, action.Name) {
+					updated_actions = append(updated_actions, action)
+				}
+			}
+
+			config.Projects[i].Actions = updated_actions
+			err := storeConfig(CONFIG, CONFIG_FILE)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return nil
+}
+
 func Init(cmdConfig *cmd.CmdConfig) error {
 	CMD_CONFIG = cmdConfig
 
@@ -267,6 +303,11 @@ func Run() error {
 		}
 	case cmd.Append:
 		err = appendToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
+		if err != nil {
+			return err
+		}
+	case cmd.Remove:
+		err = removeActionsFromConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
 		if err != nil {
 			return err
 		}

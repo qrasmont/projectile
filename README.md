@@ -7,11 +7,12 @@ Run your projects commands by calling simple action keyword.
 projectile [OPTIONS] <COMMAND> [<ARGS>]
 
 COMMAND:
-  get           List all config actions.
-  do <actions>  Execute the actions listed.
-  edit          Open the config with $EDITOR.
-  add           Add a new action to the project.
-  append        Append steps to an existing action.
+  add <name> [steps]     Add a new action to the project.
+  append  <name> [steps] Append steps to an existing action.
+  do [actions]           Execute the actions listed.
+  edit                   Open the config with $EDITOR.
+  get                    List all config actions.
+  rm [actions]           Remove the actions listed.
 
 OPTIONS:
   -p, --path  The project path, the current working directory by default.
