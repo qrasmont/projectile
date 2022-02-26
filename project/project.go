@@ -163,21 +163,14 @@ func addToConfig(config *Config, workdir string, actions []string) error {
 		return nil
 	}
 
-	found_action := false
 	for i, project := range config.Projects {
 		// Search for project
 		if project.Path == workdir {
 			// Search for matching action name in project
-			for j, action := range project.Actions {
+			for _, action := range project.Actions {
 				if action.Name == actions[0] {
-					found_action = true
-					project.Actions[j].Steps = append(action.Steps, actions[1:]...)
-					break
+					return errors.New("This action already exists, maybe you want to use 'append'")
 				}
-			}
-
-			if found_action {
-				break
 			}
 
 			// Action did not exist, add it to project
@@ -191,6 +184,30 @@ func addToConfig(config *Config, workdir string, actions []string) error {
 	err := storeConfig(config, CONFIG_FILE)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func appendToConfig(config *Config, workdir string, actions []string) error {
+	if reflect.DeepEqual(PROJECT, Project{}) {
+		return errors.New("Cannot append action, no exititing project.")
+	}
+
+	for _, project := range config.Projects {
+		if project.Path == workdir {
+			for i, action := range project.Actions {
+				if action.Name == actions[0] {
+					project.Actions[i].Steps = append(action.Steps, actions[1:]...)
+					err := storeConfig(config, CONFIG_FILE)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+			}
+
+			return errors.New("This action doesn't exist, cannot append. Maybe you want 'add'.")
+		}
 	}
 	return nil
 }
@@ -244,7 +261,15 @@ func Run() error {
 			return err
 		}
 	case cmd.Add:
-		addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
+		err = addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
+		if err != nil {
+			return err
+		}
+	case cmd.Append:
+		err = appendToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Actions)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

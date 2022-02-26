@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	Do   string = "do"
-	Get         = "get"
-	Edit        = "edit"
-	Add         = "add"
+	Do     string = "do"
+	Get           = "get"
+	Edit          = "edit"
+	Add           = "add"
+	Append        = "append"
 )
 
 type CmdConfig struct {
@@ -67,6 +68,10 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 		return nil
 	case Add:
 		cmdConfig.Command = Add
+		cmdConfig.Actions = args[1:]
+		return nil
+	case Append:
+		cmdConfig.Command = Append
 		cmdConfig.Actions = args[1:]
 		return nil
 	default:
