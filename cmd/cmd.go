@@ -16,12 +16,13 @@ const (
 	Edit          = "edit"
 	Add           = "add"
 	Append        = "append"
+	Remove        = "rm"
 )
 
 type CmdConfig struct {
 	Path    string
 	Command string
-	Args []string
+	Args    []string
 }
 
 type Options struct {
@@ -72,6 +73,10 @@ func setCommand(args []string, cmdConfig *CmdConfig) error {
 		return nil
 	case Append:
 		cmdConfig.Command = Append
+		cmdConfig.Args = args[1:]
+		return nil
+	case Remove:
+		cmdConfig.Command = Remove
 		cmdConfig.Args = args[1:]
 		return nil
 	default:
