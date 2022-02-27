@@ -49,6 +49,43 @@ func hasConfigFile(file string) (bool, error) {
 	return false, nil
 }
 
+func userWantsToRestoreConfig() bool {
+	resp := ""
+	for {
+		fmt.Println("Could not parse your config.")
+		fmt.Println("Do you want to restore the last backup?")
+		fmt.Println("NOTE: This will override your current config file [yY/nN]: ")
+		fmt.Scanln(&resp)
+		if resp == "y" || resp == "Y" {
+			return true
+		} else if resp == "n" || resp == "N" {
+			return false
+		} else {
+			fmt.Println("Wrong input!")
+		}
+	}
+}
+
+func restoreConfig(config *Config, path string) error {
+	jsonFile, err := os.Open(path + ".bak")
+	if err != nil {
+		return err
+	}
+
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	err = json.Unmarshal(byteValue, &config)
+	if err != nil {
+		return err
+	}
+
+	storeConfig(config, path)
+
+	return nil
+}
+
 func parseConfig(config *Config, path string) error {
 	jsonFile, err := os.Open(path)
 	if err != nil {
@@ -61,6 +98,10 @@ func parseConfig(config *Config, path string) error {
 
 	err = json.Unmarshal(byteValue, &config)
 	if err != nil {
+		if userWantsToRestoreConfig() {
+			restoreConfig(config, path)
+			return nil
+		}
 		return err
 	}
 
