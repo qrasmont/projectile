@@ -78,6 +78,13 @@ func storeConfig(config *Config, path string) error {
 		return err
 	}
 
+	// Create a config back-up as well
+	path = path + ".bak"
+	err = ioutil.WriteFile(path, str_file, 0644)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
