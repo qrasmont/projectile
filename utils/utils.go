@@ -8,20 +8,13 @@ import (
 
 const DEFAULT_HOME_CONFIG = ".config/projectile.json"
 
-func GetWorkDir(path string) (string, error) {
-	var workdir string
-
-	if path != "" {
-		workdir = path
-	} else {
-		wd, err := os.Getwd()
-		if err != nil {
-			return "", errors.New("Could not get working directory.")
-		}
-		workdir = wd
+func GetWorkDir() (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", errors.New("Could not get working directory.")
 	}
 
-	return workdir, nil
+	return wd, nil
 }
 func GetConfigPath() string {
 	home_dir, _ := os.UserHomeDir()
