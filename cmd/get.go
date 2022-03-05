@@ -7,28 +7,33 @@ import (
 
 func init() {
 	rootCmd.AddCommand(getCmd)
+	getCmd.Flags().BoolVarP(&showSteps, "steps", "s", false, "show steps aswell")
 }
 
-var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "List project actions.",
-    Args: cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := &config.Config{}
+var (
+	showSteps bool
 
-		err := config.ParseConfig(cfg, ConfigPath)
-		if err != nil {
-			return err
-		}
+	getCmd = &cobra.Command{
+		Use:   "get",
+		Short: "List project actions.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg := &config.Config{}
 
-		prj := &config.Project{}
-		err = config.GetProjectFromConfig(cfg, ProjectPath, prj)
-		if err != nil {
-			return err
-		}
+			err := config.ParseConfig(cfg, ConfigPath)
+			if err != nil {
+				return err
+			}
 
-		config.PrintAllActionsFromConfig(prj)
+			prj := &config.Project{}
+			err = config.GetProjectFromConfig(cfg, ProjectPath, prj)
+			if err != nil {
+				return err
+			}
 
-		return nil
-	},
-}
+			config.PrintAllActionsFromConfig(prj, showSteps)
+
+			return nil
+		},
+	}
+)

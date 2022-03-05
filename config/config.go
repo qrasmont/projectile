@@ -141,9 +141,14 @@ func ExtractCommandsFromActions(project *Project, args []string) ([]string, erro
 	return commands, nil
 }
 
-func PrintAllActionsFromConfig(project *Project) {
+func PrintAllActionsFromConfig(project *Project, showSteps bool) {
 	for _, project_action := range project.Actions {
 		fmt.Println(project_action.Name)
+		if showSteps {
+			for _, step := range project_action.Steps {
+				fmt.Println("\t", step)
+			}
+		}
 	}
 }
 
