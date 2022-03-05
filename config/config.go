@@ -70,7 +70,7 @@ func restoreConfig(config *Config, path string) error {
 		return err
 	}
 
-	storeConfig(config, path)
+	StoreConfig(config, path)
 
 	return nil
 }
@@ -97,7 +97,7 @@ func ParseConfig(config *Config, path string) error {
 	return nil
 }
 
-func storeConfig(config *Config, path string) error {
+func StoreConfig(config *Config, path string) error {
 	str_file, err := json.MarshalIndent(config, "", "   ")
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func GetProjectFromConfig(config *Config, project_path string, project *Project)
 		}
 	}
 
-    return errors.New("This project does not exists")
+	return errors.New("This project does not exists")
 }
 
 func CommandRunner(commands *[]string, workdir string) error {
@@ -174,7 +174,7 @@ func CommandRunner(commands *[]string, workdir string) error {
 	return nil
 }
 
-func addToProject(config *Config, workdir string, args []string) error {
+func AddToProject(config *Config, workdir string, args []string) error {
 	for i, project := range config.Projects {
 		// Search for project
 		if project.Path == workdir {
@@ -195,7 +195,7 @@ func addToProject(config *Config, workdir string, args []string) error {
 	return nil
 }
 
-func addToConfig(config *Config, workdir string, args []string) error {
+func AddToConfig(config *Config, workdir string, args []string) error {
 	action := Action{Name: args[0], Steps: args[1:]}
 	project := Project{Path: workdir, Actions: []Action{action}}
 
