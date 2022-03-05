@@ -1,4 +1,4 @@
-package project
+package config
 
 import (
 	"encoding/json"
@@ -8,13 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
-
-	"github.com/quadstew/projectile/cmd"
 )
-
-const DEFAULT_HOME_CONFIG = ".config/projectile.json"
 
 type Action struct {
 	Name  string
@@ -30,13 +25,7 @@ type Config struct {
 	Projects []Project
 }
 
-var CONFIG *Config = &Config{}
-var CMD_CONFIG *cmd.CmdConfig
-var PROJECT Project = Project{}
-var CONFIG_FILE string = ""
-
 func hasConfigFile(file string) (bool, error) {
-
 	matches, err := filepath.Glob(file)
 
 	if err != nil {
@@ -81,12 +70,12 @@ func restoreConfig(config *Config, path string) error {
 		return err
 	}
 
-	storeConfig(config, path)
+	StoreConfig(config, path)
 
 	return nil
 }
 
-func parseConfig(config *Config, path string) error {
+func ParseConfig(config *Config, path string) error {
 	jsonFile, err := os.Open(path)
 	if err != nil {
 		return err
@@ -108,7 +97,7 @@ func parseConfig(config *Config, path string) error {
 	return nil
 }
 
-func storeConfig(config *Config, path string) error {
+func StoreConfig(config *Config, path string) error {
 	str_file, err := json.MarshalIndent(config, "", "   ")
 	if err != nil {
 		return err
@@ -129,7 +118,7 @@ func storeConfig(config *Config, path string) error {
 	return nil
 }
 
-func extractCommandsFromActions(project *Project, args []string) ([]string, error) {
+func ExtractCommandsFromActions(project *Project, args []string) ([]string, error) {
 	var commands []string
 
 	for _, action := range args {
@@ -152,22 +141,24 @@ func extractCommandsFromActions(project *Project, args []string) ([]string, erro
 	return commands, nil
 }
 
-func printAllActionsFromConfig(project *Project) {
+func PrintAllActionsFromConfig(project *Project) {
 	for _, project_action := range project.Actions {
 		fmt.Println(project_action.Name)
 	}
 }
 
-func setProject(config *Config, workdir string) {
-	for _, project := range config.Projects {
-		if project.Path == workdir {
-			PROJECT = project
-			return
+func GetProjectFromConfig(config *Config, project_path string, project *Project) error {
+	for _, config_project := range config.Projects {
+		if config_project.Path == project_path {
+			*project = config_project
+			return nil
 		}
 	}
+
+	return errors.New("This project does not exists")
 }
 
-func commandRunner(commands *[]string, workdir string) error {
+func CommandRunner(commands *[]string, workdir string) error {
 	for _, cmd := range *commands {
 		args := strings.Fields(cmd)
 		runner := exec.Command(args[0], args[1:]...)
@@ -183,34 +174,7 @@ func commandRunner(commands *[]string, workdir string) error {
 	return nil
 }
 
-func openEditor(editor string, file string) error {
-	runner := exec.Command(editor, file)
-	runner.Stdin = os.Stdin
-	runner.Stdout = os.Stdout
-	runner.Stderr = os.Stdout
-	err := runner.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func addToConfig(config *Config, workdir string, args []string) error {
-	// If PROJECT is empty it's not in our config
-	if reflect.DeepEqual(PROJECT, Project{}) {
-		action := Action{Name: args[0], Steps: args[1:]}
-		project := Project{Path: workdir, Actions: []Action{action}}
-
-		config.Projects = append(config.Projects, project)
-
-		err := storeConfig(config, CONFIG_FILE)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
+func AddToProject(config *Config, workdir string, args []string) error {
 	for i, project := range config.Projects {
 		// Search for project
 		if project.Path == workdir {
@@ -228,28 +192,24 @@ func addToConfig(config *Config, workdir string, args []string) error {
 		}
 	}
 
-	// Store our changes
-	err := storeConfig(config, CONFIG_FILE)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
-func appendToConfig(config *Config, workdir string, args []string) error {
-	if reflect.DeepEqual(PROJECT, Project{}) {
-		return errors.New("Cannot append action, no exititing project.")
-	}
+func AddToConfig(config *Config, workdir string, args []string) error {
+	action := Action{Name: args[0], Steps: args[1:]}
+	project := Project{Path: workdir, Actions: []Action{action}}
 
+	config.Projects = append(config.Projects, project)
+
+	return nil
+}
+
+func AppendToConfig(config *Config, workdir string, args []string) error {
 	for _, project := range config.Projects {
 		if project.Path == workdir {
 			for i, action := range project.Actions {
 				if action.Name == args[0] {
 					project.Actions[i].Steps = append(action.Steps, args[1:]...)
-					err := storeConfig(config, CONFIG_FILE)
-					if err != nil {
-						return err
-					}
 					return nil
 				}
 			}
@@ -269,7 +229,7 @@ func contains(where []string, what string) bool {
 	return false
 }
 
-func removeActionsFromConfig(config *Config, workdir string, args []string) error {
+func RemoveActionsFromConfig(config *Config, workdir string, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Need at least one action to remove.")
 	}
@@ -285,79 +245,7 @@ func removeActionsFromConfig(config *Config, workdir string, args []string) erro
 			}
 
 			config.Projects[i].Actions = updated_actions
-			err := storeConfig(CONFIG, CONFIG_FILE)
-			if err != nil {
-				return err
-			}
 			return nil
-		}
-	}
-
-	return nil
-}
-
-func Init(cmdConfig *cmd.CmdConfig) error {
-	CMD_CONFIG = cmdConfig
-
-	home_dir, _ := os.UserHomeDir()
-	CONFIG_FILE = filepath.Join(home_dir, DEFAULT_HOME_CONFIG)
-	envPath := os.Getenv("PROJECTILE_CONFIG")
-	if envPath != "" {
-		CONFIG_FILE = envPath
-	}
-
-	hasConfig, err := hasConfigFile(CONFIG_FILE)
-	if err != nil {
-		return err
-	}
-
-	if !hasConfig {
-		return errors.New("No config file at: " + CONFIG_FILE)
-	}
-
-	err = parseConfig(CONFIG, CONFIG_FILE)
-	if err != nil {
-		return err
-	}
-
-	setProject(CONFIG, CMD_CONFIG.Path)
-
-	return nil
-}
-
-func Run() error {
-	var commands []string
-	var err error
-
-	switch CMD_CONFIG.Command {
-	case cmd.Edit:
-		editor := os.Getenv("EDITOR")
-		if editor == "" {
-			return errors.New("Cannot open an editor. EDITOR not set.")
-		}
-		openEditor(editor, CONFIG_FILE)
-	case cmd.Get:
-		printAllActionsFromConfig(&PROJECT)
-	case cmd.Do:
-		commands, err = extractCommandsFromActions(&PROJECT, CMD_CONFIG.Args)
-		err = commandRunner(&commands, CMD_CONFIG.Path)
-		if err != nil {
-			return err
-		}
-	case cmd.Add:
-		err = addToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
-		if err != nil {
-			return err
-		}
-	case cmd.Append:
-		err = appendToConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
-		if err != nil {
-			return err
-		}
-	case cmd.Remove:
-		err = removeActionsFromConfig(CONFIG, CMD_CONFIG.Path, CMD_CONFIG.Args)
-		if err != nil {
-			return err
 		}
 	}
 
