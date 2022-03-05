@@ -75,7 +75,7 @@ func restoreConfig(config *Config, path string) error {
 	return nil
 }
 
-func parseConfig(config *Config, path string) error {
+func ParseConfig(config *Config, path string) error {
 	jsonFile, err := os.Open(path)
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func storeConfig(config *Config, path string) error {
 	return nil
 }
 
-func extractCommandsFromActions(project *Project, args []string) ([]string, error) {
+func ExtractCommandsFromActions(project *Project, args []string) ([]string, error) {
 	var commands []string
 
 	for _, action := range args {
@@ -147,16 +147,18 @@ func printAllActionsFromConfig(project *Project) {
 	}
 }
 
-func getProjectFromConfig(config *Config, project_path string, project *Project) {
+func GetProjectFromConfig(config *Config, project_path string, project *Project) error {
 	for _, config_project := range config.Projects {
 		if config_project.Path == project_path {
 			*project = config_project
-			return
+			return nil
 		}
 	}
+
+    return errors.New("This project does not exists")
 }
 
-func commandRunner(commands *[]string, workdir string) error {
+func CommandRunner(commands *[]string, workdir string) error {
 	for _, cmd := range *commands {
 		args := strings.Fields(cmd)
 		runner := exec.Command(args[0], args[1:]...)
