@@ -172,18 +172,6 @@ func commandRunner(commands *[]string, workdir string) error {
 	return nil
 }
 
-func openEditor(editor string, file string) error {
-	runner := exec.Command(editor, file)
-	runner.Stdin = os.Stdin
-	runner.Stdout = os.Stdout
-	runner.Stderr = os.Stdout
-	err := runner.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func addToProject(config *Config, workdir string, args []string) error {
 	for i, project := range config.Projects {
 		// Search for project
