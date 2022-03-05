@@ -229,7 +229,7 @@ func contains(where []string, what string) bool {
 	return false
 }
 
-func removeActionsFromConfig(config *Config, workdir string, args []string) error {
+func RemoveActionsFromConfig(config *Config, workdir string, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Need at least one action to remove.")
 	}
