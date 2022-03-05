@@ -204,7 +204,7 @@ func AddToConfig(config *Config, workdir string, args []string) error {
 	return nil
 }
 
-func appendToConfig(config *Config, workdir string, args []string) error {
+func AppendToConfig(config *Config, workdir string, args []string) error {
 	for _, project := range config.Projects {
 		if project.Path == workdir {
 			for i, action := range project.Actions {
