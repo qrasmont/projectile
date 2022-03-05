@@ -141,7 +141,7 @@ func ExtractCommandsFromActions(project *Project, args []string) ([]string, erro
 	return commands, nil
 }
 
-func printAllActionsFromConfig(project *Project) {
+func PrintAllActionsFromConfig(project *Project) {
 	for _, project_action := range project.Actions {
 		fmt.Println(project_action.Name)
 	}
