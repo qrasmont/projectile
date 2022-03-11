@@ -12,8 +12,8 @@ import (
 )
 
 type Action struct {
-	Name  string
-	Steps []string
+	Name   string
+	Steps  []string
 	SubDir string
 }
 
@@ -119,27 +119,24 @@ func StoreConfig(config *Config, path string) error {
 	return nil
 }
 
-func ExtractCommandsFromActions(project *Project, args []string) ([]string, error) {
-	var commands []string
-
+func ExtractActionsFromProject(project *Project, args []string) ([]Action, error) {
+	var actions []Action
 	for _, action := range args {
 		matched := false
 
 		for _, config_action := range project.Actions {
 			if action == config_action.Name {
 				matched = true
-				for _, cmd := range config_action.Steps {
-					commands = append(commands, cmd)
-				}
+				actions = append(actions, config_action)
 			}
 		}
 
 		if !matched {
-			return commands, errors.New("No match for action in config.")
+			return actions, errors.New("No match for action in config.")
 		}
 	}
 
-	return commands, nil
+	return actions, nil
 }
 
 func PrintAllActionsFromConfig(project *Project, showSteps bool) {
@@ -164,16 +161,23 @@ func GetProjectFromConfig(config *Config, project_path string, project *Project)
 	return errors.New("This project does not exists")
 }
 
-func CommandRunner(commands *[]string, workdir string) error {
-	for _, cmd := range *commands {
-		args := strings.Fields(cmd)
-		runner := exec.Command(args[0], args[1:]...)
-		runner.Dir = workdir
-		runner.Stdout = os.Stdout
-		runner.Stderr = os.Stdout
-		err := runner.Run()
-		if err != nil {
-			return err
+func CommandRunner(actions *[]Action, workdir string) error {
+
+	for _, action := range *actions {
+		dir := workdir
+		if action.SubDir != "" {
+			dir += "/" + action.SubDir
+		}
+		for _, cmd := range action.Steps {
+			args := strings.Fields(cmd)
+			runner := exec.Command(args[0], args[1:]...)
+			runner.Dir = dir
+			runner.Stdout = os.Stdout
+			runner.Stderr = os.Stdout
+			err := runner.Run()
+			if err != nil {
+				return err
+			}
 		}
 	}
 

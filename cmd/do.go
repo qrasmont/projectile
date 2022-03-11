@@ -28,7 +28,7 @@ var doCmd = &cobra.Command{
 			return err
 		}
 
-		actions, err := config.ExtractCommandsFromActions(prj, args)
+		actions, err := config.ExtractActionsFromProject(prj, args)
 		if err != nil {
 			return err
 		}
