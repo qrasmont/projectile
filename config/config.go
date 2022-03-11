@@ -14,6 +14,7 @@ import (
 type Action struct {
 	Name  string
 	Steps []string
+	SubDir string
 }
 
 type Project struct {
@@ -179,7 +180,7 @@ func CommandRunner(commands *[]string, workdir string) error {
 	return nil
 }
 
-func AddToProject(config *Config, workdir string, args []string) error {
+func AddToProject(config *Config, workdir string, args []string, subDir string) error {
 	for i, project := range config.Projects {
 		// Search for project
 		if project.Path == workdir {
@@ -191,7 +192,7 @@ func AddToProject(config *Config, workdir string, args []string) error {
 			}
 
 			// Action did not exist, add it to project
-			action := Action{Name: args[0], Steps: args[1:]}
+			action := Action{Name: args[0], Steps: args[1:], SubDir: subDir}
 			config.Projects[i].Actions = append(project.Actions, action)
 			break
 		}
@@ -200,8 +201,8 @@ func AddToProject(config *Config, workdir string, args []string) error {
 	return nil
 }
 
-func AddToConfig(config *Config, workdir string, args []string) error {
-	action := Action{Name: args[0], Steps: args[1:]}
+func AddToConfig(config *Config, workdir string, args []string, subDir string) error {
+	action := Action{Name: args[0], Steps: args[1:], SubDir: subDir}
 	project := Project{Path: workdir, Actions: []Action{action}}
 
 	config.Projects = append(config.Projects, project)

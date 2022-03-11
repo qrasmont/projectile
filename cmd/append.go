@@ -12,7 +12,7 @@ func init() {
 var appendCmd = &cobra.Command{
 	Use:   "append [action] [steps to append]",
 	Short: "Append steps to an existing action.",
-    Args: cobra.MinimumNArgs(2),
+	Args:  cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := &config.Config{}
 
