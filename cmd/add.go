@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/quadstew/projectile/config"
+	"github.com/quadstew/projectile/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +28,9 @@ var (
 
 			prj := &config.Project{}
 			err = config.GetProjectFromConfig(cfg, ProjectPath, prj)
+
+			utils.FormatSubDir(&subDirPath)
+
 			if err != nil {
 				err = config.AddToConfig(cfg, ProjectPath, args, subDirPath)
 				if err != nil {
