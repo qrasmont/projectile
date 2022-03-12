@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 type Action struct {
@@ -162,6 +161,7 @@ func GetProjectFromConfig(config *Config, project_path string, project *Project)
 }
 
 func CommandRunner(actions *[]Action, workdir string) error {
+	shell := os.Getenv("SHELL")
 
 	for _, action := range *actions {
 		dir := workdir
@@ -169,8 +169,7 @@ func CommandRunner(actions *[]Action, workdir string) error {
 			dir += "/" + action.SubDir
 		}
 		for _, cmd := range action.Steps {
-			args := strings.Fields(cmd)
-			runner := exec.Command(args[0], args[1:]...)
+			runner := exec.Command(shell, "-c", cmd) // should work for sh, bash and zsh
 			runner.Dir = dir
 			runner.Stdout = os.Stdout
 			runner.Stderr = os.Stdout
