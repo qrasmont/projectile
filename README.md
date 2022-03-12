@@ -27,48 +27,53 @@ This default location can be modified by setting the `PROJECTILE_CONFIG` environ
 Example of a projectile config:
 ```json
 {
-    "projects": [
+    "Projects": [
         {
-            "path": "/path/to/your/project",
-            "actions": [
+            "Path": "/path/to/your/project",
+            "Actions": [
                 {
-                    "name": "setup",
-                    "steps": [
+                    "Name": "setup",
+                    "Steps": [
                         "command 1",
                         "command 2"
-                    ]
+                    ],
+                    "SubDir": ""
                 },
                 {
-                    "name": "clean",
-                    "steps": [
+                    "Name": "clean",
+                    "Steps": [
                         "command 1"
-                    ]
+                    ],
+                    "SubDir": ""
                 },
                 {
-                    "name": "build",
-                    "steps": [
+                    "Name": "build",
+                    "Steps": [
                         "command 1",
                         "command 2",
                         "command 3"
-                    ]
+                    ],
+                    "SubDir": ""
                 }
             ]
         },
         {
-            "path": "/path/to/another/project",
-            "actions": [
+            "Path": "/path/to/another/project",
+            "Actions": [
                 {
-                    "name": "test",
-                    "steps": [
+                    "Name": "test",
+                    "Steps": [
                         "command 1",
                         "command 2"
-                    ]
+                    ],
+                    "SubDir": ""
                 },
                 {
-                    "name": "build",
-                    "steps": [
+                    "Name": "build",
+                    "Steps": [
                         "command 1"
-                    ]
+                    ],
+                    "SubDir": ""
                 }
             ]
         },

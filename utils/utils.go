@@ -35,3 +35,21 @@ func Exist(path string) bool {
 		return true
 	}
 }
+
+func FormatSubDir(path *string) {
+	if *path == "" {
+		return
+	}
+
+	if (*path)[:2] == "./" {
+		*path = (*path)[2:]
+	}
+
+	for (*path)[:1] == "/" {
+		*path = (*path)[1:]
+	}
+
+	for (*path)[len(*path) - 1:] == "/" {
+		*path = (*path)[:len(*path) - 1]
+	}
+}

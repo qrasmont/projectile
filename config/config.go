@@ -12,8 +12,9 @@ import (
 )
 
 type Action struct {
-	Name  string
-	Steps []string
+	Name   string
+	Steps  []string
+	SubDir string
 }
 
 type Project struct {
@@ -118,27 +119,24 @@ func StoreConfig(config *Config, path string) error {
 	return nil
 }
 
-func ExtractCommandsFromActions(project *Project, args []string) ([]string, error) {
-	var commands []string
-
+func ExtractActionsFromProject(project *Project, args []string) ([]Action, error) {
+	var actions []Action
 	for _, action := range args {
 		matched := false
 
 		for _, config_action := range project.Actions {
 			if action == config_action.Name {
 				matched = true
-				for _, cmd := range config_action.Steps {
-					commands = append(commands, cmd)
-				}
+				actions = append(actions, config_action)
 			}
 		}
 
 		if !matched {
-			return commands, errors.New("No match for action in config.")
+			return actions, errors.New("No match for action in config.")
 		}
 	}
 
-	return commands, nil
+	return actions, nil
 }
 
 func PrintAllActionsFromConfig(project *Project, showSteps bool) {
@@ -163,23 +161,30 @@ func GetProjectFromConfig(config *Config, project_path string, project *Project)
 	return errors.New("This project does not exists")
 }
 
-func CommandRunner(commands *[]string, workdir string) error {
-	for _, cmd := range *commands {
-		args := strings.Fields(cmd)
-		runner := exec.Command(args[0], args[1:]...)
-		runner.Dir = workdir
-		runner.Stdout = os.Stdout
-		runner.Stderr = os.Stdout
-		err := runner.Run()
-		if err != nil {
-			return err
+func CommandRunner(actions *[]Action, workdir string) error {
+
+	for _, action := range *actions {
+		dir := workdir
+		if action.SubDir != "" {
+			dir += "/" + action.SubDir
+		}
+		for _, cmd := range action.Steps {
+			args := strings.Fields(cmd)
+			runner := exec.Command(args[0], args[1:]...)
+			runner.Dir = dir
+			runner.Stdout = os.Stdout
+			runner.Stderr = os.Stdout
+			err := runner.Run()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func AddToProject(config *Config, workdir string, args []string) error {
+func AddToProject(config *Config, workdir string, args []string, subDir string) error {
 	for i, project := range config.Projects {
 		// Search for project
 		if project.Path == workdir {
@@ -191,7 +196,7 @@ func AddToProject(config *Config, workdir string, args []string) error {
 			}
 
 			// Action did not exist, add it to project
-			action := Action{Name: args[0], Steps: args[1:]}
+			action := Action{Name: args[0], Steps: args[1:], SubDir: subDir}
 			config.Projects[i].Actions = append(project.Actions, action)
 			break
 		}
@@ -200,8 +205,8 @@ func AddToProject(config *Config, workdir string, args []string) error {
 	return nil
 }
 
-func AddToConfig(config *Config, workdir string, args []string) error {
-	action := Action{Name: args[0], Steps: args[1:]}
+func AddToConfig(config *Config, workdir string, args []string, subDir string) error {
+	action := Action{Name: args[0], Steps: args[1:], SubDir: subDir}
 	project := Project{Path: workdir, Actions: []Action{action}}
 
 	config.Projects = append(config.Projects, project)
